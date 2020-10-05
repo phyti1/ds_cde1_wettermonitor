@@ -1,5 +1,5 @@
 # import the library
-from fhnw_ds_hs2019_weatherstation_api import data_import as weather
+import data_import as weather
 import os
 
 # DB and CSV config
@@ -18,4 +18,4 @@ weather.clean_db(config)
 # import historic data
 weather.import_historic_data(config)
 # import latest data (delta between last data point in DB and current time)
-weather.import_latest_data(config)
+weather.import_latest_data(config, True)
