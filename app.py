@@ -44,8 +44,7 @@ def get_last_week():
                             air_temperature as temp,
                             wind_speed_avg_10min as wind
                             FROM /^(tiefenbrunnen|mythenquai)/
-                            WHERE wind_speed_avg_10min > 8
-                            ORDER BY ASC LIMIT 1000
+                            ORDER BY DESC LIMIT 1000
                         ''')
 
 
