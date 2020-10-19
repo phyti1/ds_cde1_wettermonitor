@@ -10,8 +10,6 @@ import sys
 import datetime
 from time import sleep
 import os
-import threading
-
 
 class Config:
     db_host='localhost'
@@ -39,7 +37,6 @@ class Config:
     historic_data_chunksize = 10000
     historic_data_sleep_sec = 0
     client = None
-    lock = threading.RLock()
 
 
 def __set_last_db_entry(config, station, entry):
