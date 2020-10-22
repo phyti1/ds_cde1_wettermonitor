@@ -44,7 +44,10 @@ def get_last_data():
     return query_combine('''
                             SELECT
                             air_temperature,
-                            water_temperature
+                            water_temperature,
+                            wind_speed_avg_10min,
+                            wind_force_avg_10min,
+                            wind_direction
                             FROM /^(tiefenbrunnen|mythenquai)/
                             ORDER BY DESC LIMIT 1
                         ''')
@@ -56,15 +59,70 @@ def get_last_data():
 app.layout = html.Div(children=[
     html.H1(children='Weatherstation'),
 
-    html.H2(children=[
-        html.Span(id='air-temperature'),
-        html.Span(children=' °C')
-    ]),
+    html.Div(
+        children=[
+            html.Div(
+                children=[
+                    html.H2(children=[
+                        html.Span(children='Air: '),
+                        html.Span(id='air-temperature'),
+                        html.Span(children=' °C')
+                    ]),
 
-    html.H2(children=[
-        html.Span(id='water-temperature'),
-        html.Span(children=' °C')
-    ]),
+                    html.H2(children=[
+                        html.Span(children='Water: '),
+                        html.Span(id='water-temperature'),
+                        html.Span(children=' °C')
+                    ]),
+                ],
+                style={
+                    'border-right': '1px solid black',
+                    'flex-grow': '1'
+                }
+            ),
+            html.Div(
+                children=[
+                    html.Div(
+                        children=[
+                            html.H2(children=[
+                                html.Span(children='Windspeed: '),
+                                html.Span(id='wind-speed'),
+                                html.Span(children=' m/s')
+                            ]),
+
+                            html.H2(children=[
+                                html.Span(children='Windforce: '),
+                                html.Span(id='wind-force'),
+                                html.Span(children=' BFT')
+                            ]),
+
+                            html.H2(children=[
+                                html.Span(children='Winddirection: '),
+                                html.Span(id='wind-direction'),
+                                html.Span(children='°')
+                            ]),
+                        ],
+                        style={
+                            'border-bottom': '1px solid black'
+                        }
+                    ),
+                    html.Div(
+                        children=[
+                            html.H2(children=[
+                                html.Span(children='Test'),
+                            ])
+                        ]
+                    )
+                ],
+                style={
+                    'flex-grow': '1'
+                }
+            ),
+        ],
+        style={
+            'display': 'flex'
+        }
+    ),
 
     # dcc.Graph(
     #     id='temperature-graph',
@@ -85,10 +143,13 @@ app.layout = html.Div(children=[
 
 @app.callback(Output('air-temperature', 'children'),
               Output('water-temperature', 'children'),
+              Output('wind-speed', 'children'),
+              Output('wind-force', 'children'),
+              Output('wind-direction', 'children'),
               [Input('interval-component', 'n_intervals')])
 def update_text(n):
     last_data = get_last_data()
-    return last_data['air_temperature'], last_data['water_temperature']
+    return last_data['air_temperature'], last_data['water_temperature'], last_data['wind_speed_avg_10min'], last_data['wind_force_avg_10min'], last_data['wind_direction']
 
 if __name__ == '__main__':
     app.run_server(debug=True)
