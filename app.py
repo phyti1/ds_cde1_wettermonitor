@@ -2,9 +2,11 @@ import dash
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
+#import dash_bootstrap_components as dbc
 import plotly.express as px
 import pandas as pd
 from influxdb import DataFrameClient
+from datetime import datetime, timedelta
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -52,9 +54,29 @@ def get_last_data():
                             ORDER BY DESC LIMIT 1
                         ''')
 
-# fig_temperature = px.scatter(overview_data, x=overview_data.index, y="temp", color="station")
+def get_data_year_ago():
+    date_year_ago = datetime.today() - timedelta(days=365)
+    date_year_ago_string = date_year_ago.strftime('%Y-%m-%d %H:%M:%S')
+    result = query_all(f'''
+                            SELECT
+                            air_temperature,
+                            water_temperature,
+                            wind_speed_avg_10min,
+                            wind_force_avg_10min,
+                            wind_direction
+                            FROM /^(tiefenbrunnen|mythenquai)/
+                            WHERE time > '{date_year_ago_string}' 
+                            ORDER BY ASC LIMIT 20
+                    ''')
+    return result
 
-# fig_wind = px.scatter(overview_data, x=overview_data.index, y="wind", color="station")
+def load_last_year():
+    global fig_temperature
+    overview_data = get_data_year_ago()
+    fig_temperature = px.scatter(overview_data, x=overview_data.index, y="air_temperature", color="station")
+
+# initially load old data to be able to show ui
+load_last_year()
 
 app.layout = html.Div(children=[
     html.H1(children='Weatherstation'),
@@ -109,7 +131,10 @@ app.layout = html.Div(children=[
                     html.Div(
                         children=[
                             html.H2(children=[
-                                html.Span(children='Test'),
+                                dcc.Graph(
+                                    id='temperature-graph',
+                                    figure=fig_temperature
+                                ),
                             ])
                         ]
                     )
@@ -148,6 +173,7 @@ app.layout = html.Div(children=[
               Output('wind-direction', 'children'),
               [Input('interval-component', 'n_intervals')])
 def update_text(n):
+    load_last_year()
     last_data = get_last_data()
     return last_data['air_temperature'], last_data['water_temperature'], last_data['wind_speed_avg_10min'], last_data['wind_force_avg_10min'], last_data['wind_direction']
 
