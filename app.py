@@ -9,12 +9,23 @@ import sync
 import threading
 from influxdb import DataFrameClient
 from datetime import datetime, timedelta
+import sys
+
+# global exception handling
+def my_except_hook(exctype, value, traceback):
+    if exctype == AttributeError:
+        sync.import_data()
+        main()
+    else:
+        sys.__excepthook__(exctype, value, traceback)
+sys.excepthook = my_except_hook
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.title = "Wettermonitor"
 #app._favicon = "Icons8-Ios7-Weather-Partly-Cloudy-Rain.ico"
+
 
 def query(sql):
     client = DataFrameClient(host = 'localhost', port = 8086, database = 'meteorology')
@@ -85,7 +96,6 @@ def check_if_last_entry_time_is_more_than_sixteen_minutes_ago_or_not_existent(la
     if last_data.empty or last_data.index < datetime.now('Europe/Berlin') - timedelta(minutes = 16): 
         return True
     return False
-
 
 # initially load old data to be able to show ui
 load_last_year()
@@ -172,18 +182,31 @@ app.layout = html.Div(children=[
 ])
 
 @app.callback(Output('air-temperature', 'children'),
-              Output('water-temperature', 'children'),
-              Output('wind-speed', 'children'),
-              Output('wind-force', 'children'),
-              Output('wind-direction', 'children'),
-              [Input('interval-component', 'n_intervals')])
+            Output('water-temperature', 'children'),
+            Output('wind-speed', 'children'),
+            Output('wind-force', 'children'),
+            Output('wind-direction', 'children'),
+            [Input('interval-component', 'n_intervals')])
 def update_text(n):
     load_last_year()
     last_data = get_last_data()
+
     threading.Thread(target=sync.import_latest_data).start()
-    if check_if_last_entry_time_is_more_than_sixteen_minutes_ago_or_not_existent(last_data):
-        print('nicht gut')
+
+    #if check_if_last_entry_time_is_more_than_sixteen_minutes_ago_or_not_existent(last_data):
+    #    print('nicht gut')
     return last_data['air_temperature'], last_data['water_temperature'], last_data['wind_speed_avg_10min'], last_data['wind_force_avg_10min'], last_data['wind_direction']
 
+
+
+def main():
+    try:
+        app.run_server(debug=True)
+    except AttributeError as err:
+        print(err)
+        #try again after loading data
+        sync.import_data()
+        app.run_server(debug=True)
+
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    main()
