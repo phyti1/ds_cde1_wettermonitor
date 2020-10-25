@@ -5,6 +5,8 @@ import dash_html_components as html
 #import dash_bootstrap_components as dbc
 import plotly.express as px
 import pandas as pd
+import sync
+import threading
 from influxdb import DataFrameClient
 from datetime import datetime, timedelta
 
@@ -57,7 +59,8 @@ def get_last_data():
                         ''')
 
 def get_data_year_ago():
-    date_year_ago = datetime.today() - timedelta(days=366)
+    date_year_ago = datetime.utcnow()
+    date_year_ago = date_year_ago.replace(year=date_year_ago.year-1)
     date_year_ago_string = date_year_ago.strftime('%Y-%m-%d %H:%M:%S')
     result = query_all(f'''
                             SELECT
@@ -77,6 +80,12 @@ def load_last_year():
     overview_data = get_data_year_ago()
     fig_temperature = px.scatter(overview_data, x=overview_data.index, y="air_temperature", color="station", 
         labels=dict(index="Time", air_temperature="Air Temperature", station="Wetter Station"))
+
+def check_if_last_entry_time_is_more_than_sixteen_minutes_ago_or_not_existent(last_data):
+    if last_data.empty or last_data.index < datetime.now('Europe/Berlin') - timedelta(minutes = 16): 
+        return True
+    return False
+
 
 # initially load old data to be able to show ui
 load_last_year()
@@ -155,16 +164,6 @@ app.layout = html.Div(children=[
         }
     ),
 
-    # dcc.Graph(
-    #     id='temperature-graph',
-    #     figure=fig_temperature
-    # ),
-
-    # dcc.Graph(
-    #     id='wind-graph',
-    #     figure=fig_wind
-    # ),
-
     dcc.Interval(
         id='interval-component',
         interval=60000, # in milliseconds
@@ -181,6 +180,9 @@ app.layout = html.Div(children=[
 def update_text(n):
     load_last_year()
     last_data = get_last_data()
+    threading.Thread(target=sync.import_latest_data).start()
+    if check_if_last_entry_time_is_more_than_sixteen_minutes_ago_or_not_existent(last_data):
+        print('nicht gut')
     return last_data['air_temperature'], last_data['water_temperature'], last_data['wind_speed_avg_10min'], last_data['wind_force_avg_10min'], last_data['wind_direction']
 
 if __name__ == '__main__':
