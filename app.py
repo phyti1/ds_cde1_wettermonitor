@@ -11,6 +11,8 @@ from datetime import datetime, timedelta
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app.title = "Wettermonitor"
+#app._favicon = "Icons8-Ios7-Weather-Partly-Cloudy-Rain.ico"
 
 def query(sql):
     client = DataFrameClient(host = 'localhost', port = 8086, database = 'meteorology')
@@ -55,7 +57,7 @@ def get_last_data():
                         ''')
 
 def get_data_year_ago():
-    date_year_ago = datetime.today() - timedelta(days=365)
+    date_year_ago = datetime.today() - timedelta(days=366)
     date_year_ago_string = date_year_ago.strftime('%Y-%m-%d %H:%M:%S')
     result = query_all(f'''
                             SELECT
@@ -73,7 +75,8 @@ def get_data_year_ago():
 def load_last_year():
     global fig_temperature
     overview_data = get_data_year_ago()
-    fig_temperature = px.scatter(overview_data, x=overview_data.index, y="air_temperature", color="station")
+    fig_temperature = px.scatter(overview_data, x=overview_data.index, y="air_temperature", color="station", 
+        labels=dict(index="Time", air_temperature="Air Temperature", station="Wetter Station"))
 
 # initially load old data to be able to show ui
 load_last_year()
@@ -99,7 +102,8 @@ app.layout = html.Div(children=[
                 ],
                 style={
                     'border-right': '1px solid black',
-                    'flex-grow': '1'
+                    'flex-grow': '1',
+                    'min-width': '300px'
                 }
             ),
             html.Div(
@@ -140,12 +144,14 @@ app.layout = html.Div(children=[
                     )
                 ],
                 style={
-                    'flex-grow': '1'
+                    'flex-grow': '1',
+                    'padding-left': '10px'
                 }
             ),
         ],
         style={
-            'display': 'flex'
+            'display': 'flex',
+            'fxLayoutGap': '200px'
         }
     ),
 
