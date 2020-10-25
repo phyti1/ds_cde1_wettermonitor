@@ -2,7 +2,7 @@ import http.client
 
 
 # Check if internet connection available using the google main site
-def check_internet(url_internet="www.google.com", timeout=5):
+def check_internet(url_internet="https://www.google.com/", timeout=5):
     connect_internet = http.client.HTTPConnection(url_internet, timeout=timeout)
     try:
         connect_internet.request("head", "/")
