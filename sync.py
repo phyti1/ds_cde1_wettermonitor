@@ -28,7 +28,10 @@ def import_latest_data():
             is_syncing = True
             # DB and CSV config
             config = weather.Config()
-
+            
+            
+            # connect to DB
+            weather.connect_db(config)
             # import latest data (delta between last data point in DB and current time)
             weather.import_latest_data(config, True)
             is_syncing = False
