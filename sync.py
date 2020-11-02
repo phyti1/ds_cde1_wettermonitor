@@ -36,6 +36,8 @@ def import_latest_data():
     except AttributeError as err:
         print(err)
         import_data()
+        is_syncing = False
     except:
         print("No Internet")
+        is_syncing = False
         return
