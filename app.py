@@ -92,7 +92,7 @@ def load_last_year():
     global fig_temperature
     overview_data = get_data_year_ago()
     #only update view if there is any data
-    if(overview_data.empty() == False):
+    if(overview_data.empty == False):
         fig_temperature = px.scatter(overview_data, x=overview_data.index, y="air_temperature", color="station", 
             labels=dict(index="Time", air_temperature="Air Temperature", station="Wetter Station"))
 
