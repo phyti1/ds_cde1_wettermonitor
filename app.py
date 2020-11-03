@@ -91,8 +91,10 @@ def get_data_year_ago():
 def load_last_year():
     global fig_temperature
     overview_data = get_data_year_ago()
-    fig_temperature = px.scatter(overview_data, x=overview_data.index, y="air_temperature", color="station", 
-        labels=dict(index="Time", air_temperature="Air Temperature", station="Wetter Station"))
+    #only update view if there is any data
+    if(overview_data != None):
+        fig_temperature = px.scatter(overview_data, x=overview_data.index, y="air_temperature", color="station", 
+            labels=dict(index="Time", air_temperature="Air Temperature", station="Wetter Station"))
 
 def check_if_last_entry_time_is_more_than_sixteen_minutes_ago_or_not_existent(last_data):
     if last_data.empty or last_data.index < datetime.now('Europe/Berlin') - timedelta(minutes = 16): 
