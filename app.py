@@ -28,7 +28,9 @@ app.title = "Wettermonitor"
 
 
 def query(sql):
-    client = DataFrameClient(host = 'localhost', port = 8086, database = 'meteorology')
+    client = DataFrameClient(host = 'localhost', port = 8086)
+    client.create_database('meteorology')
+    client.switch_database('meteorology')
     return client.query(sql)
 
 def query_all(sql):
