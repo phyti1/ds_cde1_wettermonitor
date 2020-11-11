@@ -10,6 +10,7 @@ import threading
 from influxdb import DataFrameClient
 from datetime import datetime, timedelta
 import sys
+import numpy as np
 
 # global exception handling
 def my_except_hook(exctype, value, traceback):
@@ -82,7 +83,7 @@ def get_data_year_ago():
                             wind_speed_avg_10min,
                             wind_force_avg_10min,
                             wind_direction
-                            FROM /^(tiefenbrunnen|mythenquai)/
+                            FROM /^(tiefenbrunnen)/
                             WHERE time > '{date_year_ago_string}' 
                             ORDER BY ASC LIMIT 20
                     ''')
@@ -92,21 +93,13 @@ def get_last_five_hours():
     date_now = datetime.utcnow()
     start_date = date_now - timedelta(hours=5)
     start_date_string = start_date.strftime('%Y-%m-%d %H:%M:%S')
-    #end_date_string = date_now.strftime('%Y-%m-%d %H:%M:%S') ---  AND time < '{end_date_string}'
-    # result = query_all(f'''
-    #                     SELECT
-    #                     air_temperature,
-    #                     water_temperature
-    #                     FROM /^(tiefenbrunnen|mythenquai)/
-    #                     WHERE time > '{start_date_string}'
-    #                     ORDER BY ASC LIMIT 20
-    #             ''')
+    end_date_string = date_now.strftime('%Y-%m-%d %H:%M:%S')
     result = query_all(f'''
                         SELECT
-                        air_temperature,
-                        water_temperature
+                        air_temperature
                         FROM /^(tiefenbrunnen|mythenquai)/
-                        ORDER BY DESC LIMIT 100
+                        WHERE time > '{start_date_string}' AND time < '{end_date_string}'
+                        ORDER BY ASC
                 ''')
     return result
 
@@ -121,18 +114,17 @@ def get_data_comparison():
         end_date_string = end_date.strftime('%Y-%m-%d %H:%M:%S')
         data = query_all(f'''
                             SELECT
-                            air_temperature,
-                            water_temperature
+                            air_temperature
                             FROM /^(tiefenbrunnen|mythenquai)/
                             WHERE time > '{start_date_string}' AND time < '{end_date_string}'
-                            ORDER BY ASC LIMIT 20
+                            ORDER BY ASC
                     ''')
         if result is None:
             result = data
         else:
             result = result.append(data, sort=False)
+    result.sort_index(inplace=True)
     return result
-#print(get_data_comparison()['air_temperature']['2007-10-30 17:30:00'].mean(skipna=True))
 
 def get_time_rounded(time):
     rounded_time = time - timedelta(minutes=time.minute % 10,
@@ -145,23 +137,33 @@ def calculate_best_match():
     current_match_data = get_last_five_hours()
     date_now = datetime.utcnow()
     date_now = get_time_rounded(date_now)
+    date_now_seven = datetime.utcnow() + timedelta(days=7)
+    date_now_seven = get_time_rounded(date_now_seven)
     date_op1 = ''
     date_op2 = ''
+    difference_dict = {}
     for years in range(1, date_now.year - 2006):
-        for days in range(1):
+        for days in range(14):
             difference = 0
             for ten_minute_interval in range(30):
-                date_op1 = (date_now - timedelta(days=years*366, minutes=ten_minute_interval)).strftime('%Y-%m-%d %H:%M:%S')
-                date_op2 = (date_now - timedelta(minutes=ten_minute_interval)).strftime('%Y-%m-%d %H:%M:%S')
-                print(date_op1, date_op2)
-                print(current_match_data)
-                data_op1 = historic_match_data['air_temperature'][date_op1]
-                data_op2 = current_match_data['air_temperature'][date_op2]
-                if data_op1 != None and data_op2 != None:
-                    difference += abs(data_op1.mean(skipna=True) - data_op2.mean(skipna=True))
-            print(difference)
-    return None
-calculate_best_match()
+                date_op1 = (date_now_seven - timedelta(days=years*365+days, minutes=ten_minute_interval*10)).strftime('%Y-%m-%d %H:%M:%S')
+                date_op2 = (date_now - timedelta(minutes=ten_minute_interval*10)).strftime('%Y-%m-%d %H:%M:%S')
+                if date_op1 in historic_match_data.index and date_op2 in current_match_data.index:
+                    if isinstance(historic_match_data['air_temperature'][date_op1], np.float64):
+                        data_op1 = historic_match_data['air_temperature'][date_op1]
+                    else:
+                        data_op1 = historic_match_data['air_temperature'][date_op1].mean(skipna=True)
+
+                    if isinstance(current_match_data['air_temperature'][date_op2], np.float64):
+                        data_op2 = current_match_data['air_temperature'][date_op2]
+                    else:
+                        data_op2 = current_match_data['air_temperature'][date_op2].mean(skipna=True)
+
+                    difference += abs(data_op1 - data_op2)
+            if difference > 0:
+                difference_dict[date_now_seven - timedelta(days=years*365+days)] = difference
+    result = difference_dict[min(difference_dict, key=difference_dict.get)]
+    return result
 
 def load_last_year():
     global fig_temperature
