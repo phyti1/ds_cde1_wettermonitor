@@ -72,6 +72,18 @@ def get_last_data():
                             ORDER BY DESC LIMIT 1
                         ''')
 
+# Gets data from 'date' + 5 hours
+def get_data_specific_date(date):
+    date_string = date.strftime('%Y-%m-%d %H:%M:%S')
+    result = query_all(f'''
+                            SELECT
+                            air_temperature
+                            FROM /^(tiefenbrunnen|mythenquai)/
+                            WHERE time >= '{date_string}' 
+                            ORDER BY ASC LIMIT 30
+                    ''')
+    return result
+
 def get_data_year_ago():
     date_year_ago = datetime.utcnow()
     date_year_ago = date_year_ago.replace(year=date_year_ago.year-1)
@@ -83,7 +95,7 @@ def get_data_year_ago():
                             wind_speed_avg_10min,
                             wind_force_avg_10min,
                             wind_direction
-                            FROM /^(tiefenbrunnen)/
+                            FROM /^(tiefenbrunnen|mythenquai)/
                             WHERE time > '{date_year_ago_string}' 
                             ORDER BY ASC LIMIT 20
                     ''')
@@ -162,8 +174,17 @@ def calculate_best_match():
                     difference += abs(data_op1 - data_op2)
             if difference > 0:
                 difference_dict[date_now_seven - timedelta(days=years*365+days)] = difference
-    result = difference_dict[min(difference_dict, key=difference_dict.get)]
+    result = min(difference_dict, key=difference_dict.get)
     return result
+
+# Use this function for weather forecast viz
+def load_day(date):
+    global forecast_graph_data
+    overview_data = get_data_specific_date(date)
+    #only update view if there is any data
+    if(overview_data.empty == False):
+        forecast_graph_data = px.scatter(overview_data, x=overview_data.index, y="air_temperature", color="station", 
+            labels=dict(index="Time", air_temperature="Air Temperature", station="Weather Forecast"))
 
 def load_last_year():
     global fig_temperature
@@ -171,7 +192,7 @@ def load_last_year():
     #only update view if there is any data
     if(overview_data.empty == False):
         fig_temperature = px.scatter(overview_data, x=overview_data.index, y="air_temperature", color="station", 
-            labels=dict(index="Time", air_temperature="Air Temperature", station="Wetter Station"))
+            labels=dict(index="Time", air_temperature="Air Temperature", station="Last Year"))
 
 def check_if_last_entry_time_is_more_than_sixteen_minutes_ago_or_not_existent(last_data):
     if last_data.empty or last_data.index < datetime.now('Europe/Berlin') - timedelta(minutes = 16): 
@@ -180,6 +201,8 @@ def check_if_last_entry_time_is_more_than_sixteen_minutes_ago_or_not_existent(la
 
 # initially load old data to be able to show ui
 load_last_year()
+# initially load forecast data
+load_day(calculate_best_match())
 
 app.layout = html.Div(children=[
     html.H1(children='Weatherstation'),
@@ -241,6 +264,16 @@ app.layout = html.Div(children=[
                                 ),
                             ])
                         ]
+                    ),
+                    html.Div(
+                        children=[
+                            html.H2(children=[
+                                dcc.Graph(
+                                    id='temperature-graph-forecast',
+                                    figure=forecast_graph_data
+                                ),
+                            ])
+                        ]
                     )
                 ],
                 style={
@@ -272,12 +305,14 @@ def update_text(n):
     load_last_year()
     last_data = get_last_data()
 
+    # Show forecast
+    load_day(calculate_best_match())
+
     threading.Thread(target=sync.import_latest_data).start()
 
     #if check_if_last_entry_time_is_more_than_sixteen_minutes_ago_or_not_existent(last_data):
     #    print('nicht gut')
     return last_data['air_temperature'], last_data['water_temperature'], last_data['wind_speed_avg_10min'], last_data['wind_force_avg_10min'], last_data['wind_direction']
-
 
 
 def main():
