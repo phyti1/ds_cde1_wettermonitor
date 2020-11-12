@@ -79,7 +79,7 @@ def get_data_specific_date(date):
                             SELECT
                             air_temperature
                             FROM /^(tiefenbrunnen|mythenquai)/
-                            WHERE time >= '{date_string}' 
+                            WHERE time > '{date_string}' 
                             ORDER BY ASC LIMIT 30
                     ''')
     return result
@@ -157,7 +157,7 @@ def calculate_best_match():
     for years in range(1, date_now.year - 2006):
         for days in range(14):
             difference = 0
-            for ten_minute_interval in range(30):
+            for ten_minute_interval in range(29):
                 date_op1 = (date_now_seven - timedelta(days=years*365+days, minutes=ten_minute_interval*10)).strftime('%Y-%m-%d %H:%M:%S')
                 date_op2 = (date_now - timedelta(minutes=ten_minute_interval*10)).strftime('%Y-%m-%d %H:%M:%S')
                 if date_op1 in historic_match_data.index and date_op2 in current_match_data.index:
