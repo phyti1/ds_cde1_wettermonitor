@@ -11,6 +11,12 @@ from influxdb import DataFrameClient
 from datetime import datetime, timedelta
 import sys
 import numpy as np
+import time
+
+from selenium import webdriver
+from selenium.webdriver.support import ui
+from selenium.webdriver.chrome.options import Options
+
 
 # global exception handling
 def my_except_hook(exctype, value, traceback):
@@ -147,6 +153,10 @@ def get_time_rounded(time):
 def calculate_best_match():
     historic_match_data = get_data_comparison()
     current_match_data = get_last_five_hours()
+    if current_match_data is None:
+        # sync not ready yet
+        sync.import_data()
+        return calculate_best_match()
     date_now = datetime.utcnow()
     date_now = get_time_rounded(date_now)
     date_now_seven = datetime.utcnow() + timedelta(days=7)
@@ -314,8 +324,42 @@ def update_text(n):
     #    print('nicht gut')
     return last_data['air_temperature'], last_data['water_temperature'], last_data['wind_speed_avg_10min'], last_data['wind_force_avg_10min'], last_data['wind_direction']
 
+def refresh_page():
+    global driver
+    try:
+        time.sleep(10)
+        driver.get("localhost:8050")
+        #driver.refresh()
+    except:
+        pass
+    while(True):
+        time.sleep(10)
+        driver.refresh()
 
 def main():
+    global driver
+    # TODO only execute if driver is not defined yet
+    # start chromium
+    option = Options()
+    # must be on top
+    option.add_argument("--no-sandbox")
+    option.add_argument("--start-maximized")
+    option.add_argument("--disable-web-security")
+    option.add_argument("--ignore-certificate-errors")
+    option.add_argument("--kiosk")
+    option.add_argument("--disable-password-manager-reauthentication")
+    option.add_argument("--incognito")
+    option.add_argument('--disable-infobars')
+    option.add_argument("--remote-debugging-port=9222")
+    # find binary with "which chromium" or "which chromium-browser" in bash
+    option.binary_location = "/snap/bin/chromium"
+    # overcome problem python executed as root
+    option.add_argument("--disable-dev-shm-usage")
+    # option.add_argument('--headless')
+
+    driver = webdriver.Chrome(executable_path="./assets/chromedriver", options=option)
+
+    threading.Thread(target=refresh_page).start()
     try:
         app.run_server(debug=True)
     except AttributeError as err:
