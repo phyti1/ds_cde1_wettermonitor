@@ -9,5 +9,5 @@
 #wait for os to fully load
 sleep 10s
 
-python3 /home/pi/wettermonitor/app.py &
+python3 /home/pi/wettermonitor/Main.py &
 
