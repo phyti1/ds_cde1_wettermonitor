@@ -42,3 +42,9 @@ class Prediciton:
                     difference_dict[date_now_seven - timedelta(days=years*365+days)] = difference
         result = min(difference_dict, key=difference_dict.get)
         return result
+
+    def predict_press(self):
+        last_hours_data = self.database.get_last_five_hours()
+        #np.polyfit()
+        #if()
+        return

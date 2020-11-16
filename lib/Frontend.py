@@ -31,6 +31,7 @@ class Frontend:
 
         self.app.callback(Output('air-temperature', 'children'),
                 Output('water-temperature', 'children'),
+                Output('forecast-pressure', 'children'),
                 Output('wind-speed', 'children'),
                 Output('wind-force', 'children'),
                 Output('wind-direction', 'children'),
@@ -53,6 +54,10 @@ class Frontend:
                                 html.Span(children='Water: '),
                                 html.Span(id='water-temperature'),
                                 html.Span(children=' °C')
+                            ]),
+                            html.H2(children=[
+                                html.Span(children='Forecast-pressure: '),
+                                html.Span(id='forecast-pressure'),
                             ]),
                         ],
                         style={
@@ -156,7 +161,8 @@ class Frontend:
 
         threading.Thread(target=self.sync.import_latest_data).start()
 
+        prediction = self.prediction.predict_press()
         #if check_if_last_entry_time_is_more_than_sixteen_minutes_ago_or_not_existent(last_data):
         #    print('nicht gut')
-        return last_data['air_temperature'], last_data['water_temperature'], last_data['wind_speed_avg_10min'], last_data['wind_force_avg_10min'], last_data['wind_direction']
+        return last_data['air_temperature'], last_data['water_temperature'], prediction, last_data['wind_speed_avg_10min'], last_data['wind_force_avg_10min'], last_data['wind_direction']
 
