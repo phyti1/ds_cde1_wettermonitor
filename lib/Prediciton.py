@@ -11,7 +11,7 @@ class Prediciton:
         current_match_data = self.database.get_last_five_hours()
         if current_match_data is None:
             # sync not ready yet
-            self.sync.import_data()
+            self.sync.import_latest_data()
             return self.calculate_best_match()
         date_now = datetime.utcnow()
         date_now = self.database.get_time_rounded(date_now)

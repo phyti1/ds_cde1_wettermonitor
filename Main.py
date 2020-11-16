@@ -16,7 +16,7 @@ class Main:
     # global exception handling
     def my_except_hook(self, exctype, value, traceback):
         if exctype == AttributeError:
-            Sync().import_data()
+            self.frontend.sync.import_data()
             self.run()
         else:
             sys.__excepthook__(exctype, value, traceback)
@@ -47,6 +47,7 @@ class Main:
         option.add_argument("--incognito")
         option.add_argument('--disable-infobars')
         option.add_argument("--remote-debugging-port=9222")
+        option.add_argument("disable-extensions")
         # find binary with "which chromium" or "which chromium-browser" in bash
         option.binary_location = "/usr/bin/chromium-browser"
         # overcome problem python executed as root
@@ -57,7 +58,7 @@ class Main:
         threading.Thread(target=self.refresh_page).start()
 
     def run(self):
-        #self.open_chromium()
+        self.open_chromium()
         try:
             self.frontend.app.run_server(debug=False)
         except AttributeError as err:
