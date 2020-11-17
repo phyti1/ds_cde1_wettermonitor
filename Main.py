@@ -49,7 +49,7 @@ class Main:
         option.add_argument("--remote-debugging-port=9222")
         option.add_argument("disable-extensions")
         # find binary with "which chromium" or "which chromium-browser" in bash
-        option.binary_location = "/usr/bin/chromium-browser"
+        option.binary_location = "/snap/bin/chromium"
         # overcome problem python executed as root
         option.add_argument("--disable-dev-shm-usage")
         # option.add_argument('--headless')
