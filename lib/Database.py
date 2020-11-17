@@ -1,15 +1,23 @@
 
 from datetime import datetime, timedelta
 from influxdb import DataFrameClient
+import pandas as pd
 
 
 class Database:
 
+    def __init__(self, client = DataFrameClient(host = 'localhost', port = 8086)):
+        self.client = client
+
+
     def query(self, sql):
-        client = DataFrameClient(host = 'localhost', port = 8086)
-        client.create_database('meteorology')
-        client.switch_database('meteorology')
-        return client.query(sql)
+        self.client.create_database('meteorology')
+        self.client.switch_database('meteorology')
+        try:
+            return self.client.query(sql)
+        except Exception as err:
+            print (err)
+        return df.DataFrame()
 
     def query_all(self, sql):
         result = self.query(sql)
@@ -30,6 +38,8 @@ class Database:
     def query_combine(self, sql):
         # query all stations
         result = self.query_all(sql)
+        if result is None:
+            return pd.DataFrame()
 
         # only get latest (filter out stations without new data)
         latest = result[result.index == result.index.max()]
@@ -56,7 +66,7 @@ class Database:
                                 SELECT
                                 air_temperature
                                 FROM /^(tiefenbrunnen|mythenquai)/
-                                WHERE time > '{date_string}' 
+                                WHERE time > '{date_string}'
                                 ORDER BY ASC LIMIT 30
                         ''')
         return result
@@ -73,7 +83,7 @@ class Database:
                                 wind_force_avg_10min,
                                 wind_direction
                                 FROM /^(tiefenbrunnen|mythenquai)/
-                                WHERE time > '{date_year_ago_string}' 
+                                WHERE time > '{date_year_ago_string}'
                                 ORDER BY ASC LIMIT 20
                         ''')
         return result
@@ -113,7 +123,8 @@ class Database:
                 result = data
             else:
                 result = result.append(data, sort=False)
-        result.sort_index(inplace=True)
+        if not result is None:
+            result.sort_index(inplace=True)
         return result
 
     def get_time_rounded(self, time):

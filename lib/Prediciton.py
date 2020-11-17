@@ -3,19 +3,14 @@ import numpy as np
 import pandas as pd
 
 class Prediciton:
-    def __init__(self, database, sync):
+    def __init__(self, database):
         self.database = database
-        self.sync = sync
-        self.is_repeating = False
 
     def calculate_best_match(self):
         historic_match_data = self.database.get_data_comparison()
         current_match_data = self.database.get_last_five_hours()
-        if current_match_data is None and self.is_repeating == False:
-            self.is_repeating = True
-            # sync not ready yet
-            self.sync.import_latest_data()
-            return self.calculate_best_match()
+        if current_match_data is None:
+            return None
         date_now = datetime.utcnow()
         date_now = self.database.get_time_rounded(date_now)
         date_now_seven = datetime.utcnow() + timedelta(days=7)
@@ -48,10 +43,12 @@ class Prediciton:
 
     def predict_press(self):
         last_hours_data = self.database.get_last_five_hours()
+        if last_hours_data is None:
+            return ""
         pressure_data = last_hours_data['barometric_pressure_qfe']
         pressure_values = pressure_data.to_numpy()
         #remove nans
-        pressure_values_nonan = pressure_values[np.logical_not(np.isnan(pressure_values))] 
+        pressure_values_nonan = pressure_values[np.logical_not(np.isnan(pressure_values))]
         first_pressure = pressure_values_nonan[0]
 
         last_pressure = pressure_values_nonan[len(pressure_values_nonan) - 1]

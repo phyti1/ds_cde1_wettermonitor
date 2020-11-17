@@ -8,22 +8,12 @@ from selenium import webdriver
 from selenium.webdriver.support import ui
 from selenium.webdriver.chrome.options import Options
 
-from lib.Sync import Sync
 from lib.Frontend import Frontend
 
 
 class Main:
 
-    # global exception handling
-    def my_except_hook(self, exctype, value, traceback):
-        if exctype == AttributeError:
-            self.frontend.sync.import_data()
-            self.run()
-        else:
-            sys.__excepthook__(exctype, value, traceback)
-
     def __init__(self):
-        sys.excepthook = self.my_except_hook
         self.frontend = Frontend()
 
     def refresh_page(self):
@@ -64,13 +54,7 @@ class Main:
         #TODO test
         if(sys.platform == "Ubuntu 20.04"):
             self.open_chromium()
-        try:
-            self.frontend.app.run_server(debug=True)
-        except AttributeError as err:
-            print(err)
-            #try again after loading data
-            self.frontend.sync.import_data()
-            self.frontend.app.run_server(debug=True)
+        self.frontend.app.run_server(debug=False)
 
 if __name__ == '__main__':
     main = Main()
