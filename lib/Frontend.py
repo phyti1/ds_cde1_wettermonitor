@@ -18,7 +18,7 @@ class Frontend:
         self.sync = Sync()
         self.prediction = Prediciton(self.database, self.sync)
 
-
+    def run(self):
         # initially load old data to be able to show ui
         self.load_last_year()
         # initially load forecast data

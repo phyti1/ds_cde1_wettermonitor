@@ -2,6 +2,7 @@
 import sys
 import time
 import threading
+import sys
 
 from selenium import webdriver
 from selenium.webdriver.support import ui
@@ -52,13 +53,17 @@ class Main:
         option.binary_location = "/snap/bin/chromium"
         # overcome problem python executed as root
         option.add_argument("--disable-dev-shm-usage")
+        option.add_experimental_option("excludeSwitches", ['enable-automation'])
         # option.add_argument('--headless')
 
-        self.driver = webdriver.Chrome(options=option)
+        self.driver = webdriver.Chrome("./assets/chromedriver", options=option)
         threading.Thread(target=self.refresh_page).start()
 
     def run(self):
-        self.open_chromium()
+        self.frontend.run()
+        #TODO test
+        if(sys.platform == "Ubuntu 20.04"):
+            self.open_chromium()
         try:
             self.frontend.app.run_server(debug=False)
         except AttributeError as err:

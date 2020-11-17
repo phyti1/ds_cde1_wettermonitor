@@ -5,11 +5,13 @@ class Prediciton:
     def __init__(self, database, sync):
         self.database = database
         self.sync = sync
+        self.is_repeating = False
 
     def calculate_best_match(self):
         historic_match_data = self.database.get_data_comparison()
         current_match_data = self.database.get_last_five_hours()
-        if current_match_data is None:
+        if current_match_data is None and self.is_repeating == False:
+            self.is_repeating = True
             # sync not ready yet
             self.sync.import_latest_data()
             return self.calculate_best_match()
