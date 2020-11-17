@@ -65,12 +65,12 @@ class Main:
         if(sys.platform == "Ubuntu 20.04"):
             self.open_chromium()
         try:
-            self.frontend.app.run_server(debug=False)
+            self.frontend.app.run_server(debug=True)
         except AttributeError as err:
             print(err)
             #try again after loading data
             self.frontend.sync.import_data()
-            self.frontend.app.run_server(debug=False)
+            self.frontend.app.run_server(debug=True)
 
 if __name__ == '__main__':
     main = Main()

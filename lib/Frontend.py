@@ -56,7 +56,7 @@ class Frontend:
                                 html.Span(children=' °C')
                             ]),
                             html.H2(children=[
-                                html.Span(children='Forecast-pressure: '),
+                                html.Span(children='Forecast: '),
                                 html.Span(id='forecast-pressure'),
                             ]),
                         ],

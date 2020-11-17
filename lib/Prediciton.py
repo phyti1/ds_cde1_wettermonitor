@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import numpy as np
+import pandas as pd
 
 class Prediciton:
     def __init__(self, database, sync):
@@ -47,6 +48,20 @@ class Prediciton:
 
     def predict_press(self):
         last_hours_data = self.database.get_last_five_hours()
-        #np.polyfit()
-        #if()
-        return
+        pressure_data = last_hours_data['barometric_pressure_qfe']
+        pressure_values = pressure_data.to_numpy()
+        #remove nans
+        pressure_values_nonan = pressure_values[np.logical_not(np.isnan(pressure_values))] 
+        first_pressure = pressure_values_nonan[0]
+
+        last_pressure = pressure_values_nonan[len(pressure_values_nonan) - 1]
+
+        pres_difference = last_pressure - first_pressure
+        if(pres_difference > 5):
+            return "++"
+        elif(pres_difference > 0):
+            return "+"
+        elif(pres_difference > -5):
+            return "-"
+        else:
+            return "--"

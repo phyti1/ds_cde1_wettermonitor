@@ -85,7 +85,8 @@ class Database:
         end_date_string = date_now.strftime('%Y-%m-%d %H:%M:%S')
         result = self.query_all(f'''
                             SELECT
-                            air_temperature
+                            air_temperature,
+                            barometric_pressure_qfe
                             FROM /^(tiefenbrunnen|mythenquai)/
                             WHERE time > '{start_date_string}' AND time < '{end_date_string}'
                             ORDER BY ASC
