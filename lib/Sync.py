@@ -36,6 +36,6 @@ class Sync:
             print(err)
             # self.import_data()
             # self.is_syncing = False
-        except:
+        except Exception as err:
             print("No Internet")
         self.is_syncing = False

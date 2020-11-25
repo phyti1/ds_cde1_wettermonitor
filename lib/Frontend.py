@@ -5,6 +5,7 @@ import plotly.express as px
 import pandas as pd
 import threading
 from datetime import datetime, timedelta
+import time
 
 from lib.Database import Database
 from lib.Prediciton import Prediciton
@@ -24,6 +25,7 @@ class Frontend:
     def run(self):
         # import all historic data and continously load latest data
         self.sync.import_data_async(True)
+        threading.Thread(target = self.run_prediction).start()
 
         self.app.callback(Output('air-temperature', 'children'),
                 Output('water-temperature', 'children'),
@@ -148,12 +150,10 @@ class Frontend:
     def update_text(self, n):
         last_data = self.database.get_last_data()
 
-        threading.Thread(target=self.load_prediction).start()
-
         # import latest data
-        self.sync.import_data_async()
+        #self.sync.import_data_async()
 
-        prediction = self.prediction.predict_press()
+        #prediction = self.prediction.predict_press()
 
         #if check_if_last_entry_time_is_more_than_sixteen_minutes_ago_or_not_existent(last_data):
         #    print('nicht gut')
@@ -168,6 +168,9 @@ class Frontend:
         return prediction
 
     def update_prediction_graph(self, n):
-        # Show forecast
-        forecast = self.load_day(self.prediction.calculate_best_match())
-        return forecast
+        return self.forecast_graph
+
+    def run_prediction(self):
+        while(True):
+            self.load_day(self.prediction.calculate_best_match())
+            time.sleep(10)
