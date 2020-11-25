@@ -1,4 +1,3 @@
-import dash
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
@@ -13,12 +12,11 @@ from lib.Sync import Sync
 
 class Frontend:
 
-    def __init__(self):
+    def __init__(self, app):
         self.database = Database()
         self.sync = Sync()
         self.prediction = Prediciton(self.database)
-        self.fig_temperature = {}
-        self.forecast_graph_data = {}
+        self.app = app
 
     def run(self):
         # import all historic data and continously load latest data
