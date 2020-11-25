@@ -21,7 +21,7 @@ class Frontend:
         self.forecast_graph_data = {}
 
     def run(self):
-        # import all historic data
+        # import all historic data and continously load latest data
         self.sync.import_data_async(True)
 
         external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -160,9 +160,6 @@ class Frontend:
 
         # Show forecast
         self.load_day(self.prediction.calculate_best_match())
-
-        # import latest data
-        self.sync.import_data_async()
 
         prediction = self.prediction.predict_press()
 

@@ -16,9 +16,9 @@ class Sync:
         if not self.is_syncing:
             self.is_syncing = True
             if historic_data:
-                threading.Thread(target=self.import_historic_data).start()
+                threading.Thread(target = self.import_historic_data).start()
             else:
-                threading.Thread(target=self.import_latest_data).start()
+                threading.Thread(target = self.import_latest_data, args = [True]).start()
 
     def import_historic_data(self):
         weather.clean_db(self.config)
@@ -27,10 +27,10 @@ class Sync:
         # import latest data (delta between last data point in DB and current time)
         self.import_latest_data()
 
-    def import_latest_data(self):
+    def import_latest_data(self, periodic = False):
         try:
             # import latest data (delta between last data point in DB and current time)
-            weather.import_latest_data(self.config, True)
+            weather.import_latest_data(self.config, True, periodic)
 
         except AttributeError as err:
             print(err)
