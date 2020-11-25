@@ -148,7 +148,6 @@ class Frontend:
     def update_text(self, n):
         last_data = self.database.get_last_data()
 
-<<<<<<< HEAD
         threading.Thread(target=self.load_prediction).start()
 
         # import latest data
@@ -156,8 +155,6 @@ class Frontend:
 
         prediction = self.prediction.predict_press()
 
-=======
->>>>>>> 833e9ca10a4b9f33cc625c13f55b03a9c6daf483
         #if check_if_last_entry_time_is_more_than_sixteen_minutes_ago_or_not_existent(last_data):
         #    print('nicht gut')
 
