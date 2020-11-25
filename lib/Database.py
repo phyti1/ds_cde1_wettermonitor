@@ -17,7 +17,7 @@ class Database:
             return self.client.query(sql)
         except Exception as err:
             print (err)
-        return df.DataFrame()
+        return pd.DataFrame()
 
     def query_all(self, sql):
         result = self.query(sql)
