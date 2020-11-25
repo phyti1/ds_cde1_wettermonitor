@@ -14,6 +14,7 @@ from lib.Sync import Sync
 class Frontend:
 
     def __init__(self):
+        self.is_loading_prediction = False
         self.database = Database()
         self.sync = Sync()
         self.prediction = Prediciton(self.database)
@@ -154,12 +155,18 @@ class Frontend:
             return True
         return False
 
+    def load_prediction(self):
+        if not self.is_loading_prediction:
+            # Show forecast
+            self.is_loading_prediction = True
+            self.load_day(self.prediction.calculate_best_match())
+            self.is_loading_prediction = False
+
     def update_text(self, n):
         self.load_last_year()
         last_data = self.database.get_last_data()
 
-        # Show forecast
-        self.load_day(self.prediction.calculate_best_match())
+        threading.Thread(target=self.load_prediction).start()
 
         # import latest data
         self.sync.import_data_async()
