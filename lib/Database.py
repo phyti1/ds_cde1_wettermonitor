@@ -17,7 +17,7 @@ class Database:
             return self.client.query(sql)
         except Exception as err:
             print (err)
-        return df.DataFrame()
+        return pd.DataFrame()
 
     def query_all(self, sql):
         result = self.query(sql)
@@ -45,7 +45,7 @@ class Database:
         latest = result[result.index == result.index.max()]
 
         # get mean of all values
-        return latest.mean(skipna=True)
+        return latest.mean(skipna=True).round(1)
 
     def get_last_data(self):
         return self.query_combine('''

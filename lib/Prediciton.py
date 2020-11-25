@@ -43,7 +43,7 @@ class Prediciton:
 
     def predict_press(self):
         last_hours_data = self.database.get_last_five_hours()
-        if last_hours_data is None:
+        if last_hours_data is None or not 'barometric_pressure_qfe' in last_hours_data.columns:
             return ""
         pressure_data = last_hours_data['barometric_pressure_qfe']
         pressure_values = pressure_data.to_numpy()

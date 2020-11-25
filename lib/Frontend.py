@@ -1,4 +1,3 @@
-import dash
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
@@ -13,31 +12,31 @@ from lib.Sync import Sync
 
 class Frontend:
 
-    def __init__(self):
+    def __init__(self, app):
         self.is_loading_prediction = False
+
         self.database = Database()
         self.sync = Sync()
         self.prediction = Prediciton(self.database)
-        self.fig_temperature = {}
-        self.forecast_graph_data = {}
+        self.forecast_graph = {}
+        self.app = app
 
     def run(self):
-        # import all historic data
+        # import all historic data and continously load latest data
         self.sync.import_data_async(True)
-
-        external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-        self.app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-        self.app.title = "Wettermonitor"
-        #app._favicon = "Icons8-Ios7-Weather-Partly-Cloudy-Rain.ico"
 
         self.app.callback(Output('air-temperature', 'children'),
                 Output('water-temperature', 'children'),
-                Output('forecast-pressure', 'children'),
                 Output('wind-speed', 'children'),
                 Output('wind-force', 'children'),
                 Output('wind-direction', 'children'),
                 [Input('interval-component', 'n_intervals')])(self.update_text)
 
+        self.app.callback(Output('forecast-pressure', 'children'),
+                [Input('interval-component', 'n_intervals')])(self.update_prediction_text)
+
+        self.app.callback(Output('forecast-graph', 'figure'),
+                [Input('interval-component', 'n_intervals')])(self.update_prediction_graph)
         self.app.layout = html.Div(children=[
             html.H1(children='Weatherstation'),
 
@@ -97,18 +96,8 @@ class Frontend:
                                 children=[
                                     html.H2(children=[
                                         dcc.Graph(
-                                            id='temperature-graph',
-                                            figure=self.fig_temperature
-                                        ),
-                                    ])
-                                ]
-                            ),
-                            html.Div(
-                                children=[
-                                    html.H2(children=[
-                                        dcc.Graph(
-                                            id='temperature-graph-forecast',
-                                            figure=self.forecast_graph_data
+                                            id='forecast-graph',
+                                            figure=self.forecast_graph
                                         ),
                                     ])
                                 ]
@@ -139,16 +128,10 @@ class Frontend:
             overview_data = self.database.get_data_specific_date(date)
             #only update view if there is any data
             if not overview_data is None and overview_data.empty == False:
-                self.forecast_graph_data = px.scatter(overview_data, x=overview_data.index, y="air_temperature", color="station",
+                self.forecast_graph = px.scatter(overview_data, x=overview_data.index, y="air_temperature", color="station",
                     labels=dict(index="Time", air_temperature="Air Temperature", station="Weather Forecast"))
 
-    def load_last_year(self):
-        overview_data = self.database.get_data_year_ago()
-
-        #only update view if there is any data
-        if not overview_data is None and overview_data.empty == False:
-            self.fig_temperature = px.scatter(overview_data, x=overview_data.index, y="air_temperature", color="station",
-                labels=dict(index="Time", air_temperature="Air Temperature", station="Last Year"))
+        return self.forecast_graph
 
     def check_if_last_entry_time_is_more_than_sixteen_minutes_ago_or_not_existent(self, last_data):
         if last_data is None or last_data.empty or last_data.index < datetime.now('Europe/Berlin') - timedelta(minutes = 16):
@@ -163,9 +146,9 @@ class Frontend:
             self.is_loading_prediction = False
 
     def update_text(self, n):
-        self.load_last_year()
         last_data = self.database.get_last_data()
 
+<<<<<<< HEAD
         threading.Thread(target=self.load_prediction).start()
 
         # import latest data
@@ -173,10 +156,21 @@ class Frontend:
 
         prediction = self.prediction.predict_press()
 
+=======
+>>>>>>> 833e9ca10a4b9f33cc625c13f55b03a9c6daf483
         #if check_if_last_entry_time_is_more_than_sixteen_minutes_ago_or_not_existent(last_data):
         #    print('nicht gut')
 
         if last_data.empty:
-            return '', '', prediction, '', '', ''
+            return '', '', '', '', ''
         else:
-            return last_data['air_temperature'], last_data['water_temperature'], prediction, last_data['wind_speed_avg_10min'], last_data['wind_force_avg_10min'], last_data['wind_direction']
+            return last_data['air_temperature'], last_data['water_temperature'], last_data['wind_speed_avg_10min'], last_data['wind_force_avg_10min'], last_data['wind_direction']
+
+    def update_prediction_text(self, n):
+        prediction = self.prediction.predict_press()
+        return prediction
+
+    def update_prediction_graph(self, n):
+        # Show forecast
+        forecast = self.load_day(self.prediction.calculate_best_match())
+        return forecast

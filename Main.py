@@ -3,6 +3,7 @@ import sys
 import time
 import threading
 import sys
+import dash
 
 from selenium import webdriver
 from selenium.webdriver.support import ui
@@ -14,7 +15,8 @@ from lib.Frontend import Frontend
 class Main:
 
     def __init__(self):
-        self.frontend = Frontend()
+        app = dash.Dash(__name__, title = 'Wettermonitor')
+        self.frontend = Frontend(app)
 
     def refresh_page(self):
         try:
