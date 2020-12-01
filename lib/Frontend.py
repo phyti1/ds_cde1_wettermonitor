@@ -14,19 +14,28 @@ from lib.Sync import Sync
 class Frontend:
 
     def __init__(self, app):
+        """ (object) -> void
+        Contructor of Frontend. Will initialize other classes and set default values.
+        """
         self.is_loading_prediction = False
-
+        # instanciate Database, Sync and Prediction classes and store in private variables
         self.database = Database()
         self.sync = Sync()
         self.prediction = Prediciton(self.database)
+        # create empty graph data to be able to display in UI
         self.forecast_graph = {}
+        # store dash instance in private variable
         self.app = app
 
     def run(self):
+        """ (void) -> void
+        Function to run the weatherstation UI.
+        """
         # import all historic data and continously load latest data
         self.sync.import_data_async(True)
-        threading.Thread(target = self.run_prediction).start()
-
+        # start the prediction calculation loop in new thread
+        threading.Thread(target = self.run_prediction_periodic).start()
+        # define dash callback function, runs self.update_text
         self.app.callback(Output('air-temperature', 'children'),
                 Output('water-temperature', 'children'),
                 Output('wind-speed', 'children'),
@@ -34,11 +43,15 @@ class Frontend:
                 Output('wind-direction', 'children'),
                 [Input('interval-component', 'n_intervals')])(self.update_text)
 
+        # define dash callback function, runs self.update_prediction_text
         self.app.callback(Output('forecast-pressure', 'children'),
                 [Input('interval-component', 'n_intervals')])(self.update_prediction_text)
 
+        # define dash callback function, runs self.update_prediction_graph
         self.app.callback(Output('forecast-graph', 'figure'),
                 [Input('interval-component', 'n_intervals')])(self.update_prediction_graph)
+
+        # set dash's user interface layout in html like style
         self.app.layout = html.Div(children=[
             html.H1(children='Weatherstation'),
 
@@ -124,53 +137,68 @@ class Frontend:
             )
         ])
 
-    # Use this function for weather forecast viz
+    # Use this function for weather forecast visualization
     def load_day(self, date):
+        """ (TODO whats that?) -> px.scatter
+        Loads a specific day from the database, displays it in the forecast graph and returns it.
+        """
         if date != None:
+            # load specific date from database
             overview_data = self.database.get_data_specific_date(date)
-            #only update view if there is any data
+            # only update view if there is any data
             if not overview_data is None and overview_data.empty == False:
+                # create and set new forecast graph
                 self.forecast_graph = px.scatter(overview_data, x=overview_data.index, y="air_temperature", color="station",
                     labels=dict(index="Time", air_temperature="Air Temperature", station="Weather Forecast"))
 
         return self.forecast_graph
 
-    def check_if_last_entry_time_is_more_than_sixteen_minutes_ago_or_not_existent(self, last_data):
+    def is_data_uptodate(self, last_data):
+        """ (TODO whats that?) -> bool
+        Determines whether the latest data could be loaded and returns true if it was.
+        """
         if last_data is None or last_data.empty or last_data.index < datetime.now('Europe/Berlin') - timedelta(minutes = 16):
             return True
         return False
 
-    def load_prediction(self):
-        if not self.is_loading_prediction:
-            # Show forecast
-            self.is_loading_prediction = True
-            self.load_day(self.prediction.calculate_best_match())
-            self.is_loading_prediction = False
-
     def update_text(self, n):
+        """ (int) -> string, string, string, string
+        Callback function for the UI measurement values.
+        """
+        # read the latest data observation from the database
         last_data = self.database.get_last_data()
-
-        # import latest data
-        #self.sync.import_data_async()
-
-        #prediction = self.prediction.predict_press()
-
-        #if check_if_last_entry_time_is_more_than_sixteen_minutes_ago_or_not_existent(last_data):
-        #    print('nicht gut')
-
+        # check if the loaded data is empty
         if last_data.empty:
+            # return empty values to UI to be able to show the UI before the database connection works
             return '', '', '', '', ''
         else:
+            # return the newly read data
             return last_data['air_temperature'], last_data['water_temperature'], last_data['wind_speed_avg_10min'], last_data['wind_force_avg_10min'], last_data['wind_direction']
 
     def update_prediction_text(self, n):
+        """ (int) -> string
+        Callback function for calculating the air pressure prediction.
+        """
+        # calculate the prediction
         prediction = self.prediction.predict_press()
+        # return the prediction outcome sign to display in the UI
         return prediction
 
     def update_prediction_graph(self, n):
+        """ (int) -> string
+        Callback function to return the periodically calculated prediction graph.
+        """
+        # return the graph from the private variable
         return self.forecast_graph
 
-    def run_prediction(self):
+    def run_prediction_periodic(self):
+        """ (void) -> void
+        Function to periodically calculate the temperature prediction. 
+        It is meant to be called once and will run until the sofware is shut down.
+        """
+        # loop runs until the software is closed down
         while(True):
-            self.load_day(self.prediction.calculate_best_match())
+            # calulcates and shows the temperature prediction in the forecast_graph (TODO Takes 2min 10sec! on raspberry pi 4)
+            self.load_day(self.prediction.predict_temp())
+            # wait some time to reevaluate with new data
             time.sleep(10)

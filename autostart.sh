@@ -1,15 +1,13 @@
 #!/bin/bash
 
-#python3.8 app.py
+# wait for a few seconds to be sure python is fully loaded
+sleep 5s
 
-#@xscreensaver -no-splash  # comment this line out to disable screensaver
-#@xset s off
-#@xset -dpms
-#@xset s noblank
-#chromium-browser --incognito --kiosk http://localhost:8050/
-#chromium-browser http://www.google.com/ --start-fullscreen --no-sandbox
-#wait for os to fully load
-sleep 10s
+# run wettermonitor
+python3 /home/user/wettermonitor/Main.py &
 
-python3 Main.py &
+# wait a few seconds for the server to start
+sleep 3s
 
+# start chromium browser in fullscreen and display the application
+chromium --kiosk http://localhost:8050/ &
