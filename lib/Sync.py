@@ -16,16 +16,20 @@ class Sync:
         if not self.is_syncing:
             self.is_syncing = True
             if historic_data:
-                threading.Thread(target = self.import_historic_data).start()
+                threading.Thread(target = self.import_historic_data, args = [True]).start()
             else:
                 threading.Thread(target = self.import_latest_data, args = [True]).start()
 
-    def import_historic_data(self):
-        weather.clean_db(self.config)
-        # import historic data
-        weather.import_historic_data(self.config)
+    def import_historic_data(self, periodic = False):
+        if not weather.db_is_up_to_date(self.config):
+            print('Syncing historic data...')
+            weather.clean_db(self.config)
+            # import historic data
+            weather.import_historic_data(self.config)
+        else:
+            print('Historic data already synced.')
         # import latest data (delta between last data point in DB and current time)
-        self.import_latest_data()
+        self.import_latest_data(periodic)
 
     def import_latest_data(self, periodic = False):
         try:
