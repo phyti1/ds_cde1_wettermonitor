@@ -109,12 +109,10 @@ class Frontend:
                             ),
                             html.Div(
                                 children=[
-                                    html.H2(children=[
-                                        dcc.Graph(
-                                            id='forecast-graph',
-                                            figure=self.forecast_graph
-                                        ),
-                                    ])
+                                    dcc.Graph(
+                                        id='forecast-graph',
+                                        figure=self.forecast_graph
+                                    )
                                 ]
                             )
                         ],
