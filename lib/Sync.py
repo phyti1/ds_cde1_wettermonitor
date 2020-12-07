@@ -29,7 +29,9 @@ class Sync:
         else:
             print('Historic data already synced.')
         # import latest data (delta between last data point in DB and current time)
-        self.import_latest_data(periodic)
+        self.import_latest_data()
+        if periodic:
+            self.import_latest_data(True)
 
     def import_latest_data(self, periodic = False):
         try:
