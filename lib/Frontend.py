@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 import time
 
 from lib.Database import Database
-from lib.Prediciton import Prediciton
+from lib.Prediction import Prediction
 from lib.Sync import Sync
 
 class Frontend:
@@ -21,7 +21,7 @@ class Frontend:
         # instanciate Database, Sync and Prediction classes and store in private variables
         self.database = Database()
         self.sync = Sync()
-        self.prediction = Prediciton(self.database)
+        self.prediction = Prediction(self.database)
         # create empty graph data to be able to display in UI
         self.forecast_graph = {}
         # store dash instance in private variable

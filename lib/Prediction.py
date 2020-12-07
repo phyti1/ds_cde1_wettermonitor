@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 
-class Prediciton:
+class Prediction:
     def __init__(self, database):
         """ (object) -> void
         Contructor of the Prediction class.
