@@ -1,13 +1,4 @@
-
-import sys
-import time
-import threading
-import sys
 import dash
-
-from selenium import webdriver
-from selenium.webdriver.support import ui
-from selenium.webdriver.chrome.options import Options
 
 from lib.Frontend import Frontend
 
