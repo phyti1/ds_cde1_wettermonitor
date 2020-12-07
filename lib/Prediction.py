@@ -25,7 +25,8 @@ class Prediction:
         date_op1 = ''
         date_op2 = ''
         difference_dict = {}
-        for years in range(1, date_now.year - 2006):
+        # find the best matching 5 hours in a timespan of +/- 7 days from now in the last 8 years
+        for years in range(8):
             for days in range(14):
                 difference = 0
                 for ten_minute_interval in range(29):
