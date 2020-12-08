@@ -53,7 +53,7 @@ class Frontend:
 
         # set dash's user interface layout in html like style
         self.app.layout = html.Div(children=[
-            html.H1(children='Weatherstation'),
+            html.H1(children='Weatherstation Lake of Zurich'),
 
             html.Div(
                 children=[
