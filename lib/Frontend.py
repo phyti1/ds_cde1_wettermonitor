@@ -146,9 +146,12 @@ class Frontend:
             # only update view if there is any data
             if not overview_data is None and overview_data.empty == False:
                 # create and set new forecast graph
-                self.forecast_graph = px.scatter(overview_data, x=overview_data.index, y="air_temperature", color="station",
-                    labels=dict(index="Time", air_temperature="Air Temperature", station="Weather Forecast"))
-
+                grouped_overview_data = overview_data.groupby(overview_data.index)
+                mean_overview_data = grouped_overview_data.mean()
+                #mean_overview_data = mean_overview_data.reset_index()
+                self.forecast_graph = px.scatter(mean_overview_data, x=mean_overview_data.index, y="air_temperature",
+                    color_discrete_sequence=['red'], labels=dict(index="Time", air_temperature="Air Temperature"),
+                    title="Temperature Forecast (based on past 8 years)")
         return self.forecast_graph
 
     def is_data_uptodate(self, last_data):
