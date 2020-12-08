@@ -151,7 +151,7 @@ class Frontend:
                 #mean_overview_data = mean_overview_data.reset_index()
                 self.forecast_graph = px.scatter(mean_overview_data, x=mean_overview_data.index, y="air_temperature",
                     color_discrete_sequence=['red'], labels=dict(index="Time", air_temperature="Air Temperature"),
-                    title="Temperature Forecast (based on past 8 years)")
+                    title="Temperature Forecast based on past 8 years (Mean of Mythenquai & Tiefenbrunnen)")
         return self.forecast_graph
 
     def is_data_uptodate(self, last_data):
