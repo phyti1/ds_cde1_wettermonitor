@@ -145,10 +145,9 @@ class Frontend:
             overview_data = self.database.get_data_specific_date(date)
             # only update view if there is any data
             if not overview_data is None and overview_data.empty == False:
-                # create and set new forecast graph
+                # create and set new forecast graph (make mean of the two stations and then make a graph of the means)
                 grouped_overview_data = overview_data.groupby(overview_data.index)
                 mean_overview_data = grouped_overview_data.mean()
-                #mean_overview_data = mean_overview_data.reset_index()
                 self.forecast_graph = px.scatter(mean_overview_data, x=mean_overview_data.index, y="air_temperature",
                     color_discrete_sequence=['red'], labels=dict(index="Time", air_temperature="Air Temperature"),
                     title="Temperature Forecast based on past 8 years (Mean of Mythenquai & Tiefenbrunnen)")

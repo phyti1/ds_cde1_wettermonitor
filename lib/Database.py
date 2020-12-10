@@ -47,6 +47,7 @@ class Database:
         # get mean of all values
         return latest.mean(skipna=True).round(1)
 
+    # gets latest available data
     def get_last_data(self):
         return self.query_combine('''
                                 SELECT
@@ -59,7 +60,7 @@ class Database:
                                 ORDER BY DESC LIMIT 1
                             ''')
 
-    # Gets data from 'date' + 5 hours
+    # gets data from 'date' + 5 hours
     def get_data_specific_date(self, date):
         date_string = date.strftime('%Y-%m-%d %H:%M:%S')
         result = self.query_all(f'''
@@ -71,6 +72,7 @@ class Database:
                         ''')
         return result
 
+    # gets data from exactly one year ago
     def get_data_year_ago(self):
         date_year_ago = datetime.utcnow()
         date_year_ago = date_year_ago.replace(year=date_year_ago.year-1)
@@ -88,6 +90,7 @@ class Database:
                         ''')
         return result
 
+    # gets all data of the last 5 hours (30 data points)
     def get_last_five_hours(self):
         date_now = datetime.utcnow()
         start_date = date_now - timedelta(hours=5)
@@ -103,6 +106,7 @@ class Database:
                     ''')
         return result
 
+    # gets the data used for a specific timespan + 7 and - 7 days from todays date
     def get_data_comparison(self):
         date_now = datetime.utcnow()
         result = None
@@ -127,6 +131,7 @@ class Database:
             result.sort_index(inplace=True)
         return result
 
+    # rounds time to 10 minute intervals
     def get_time_rounded(self, time):
         rounded_time = time - timedelta(minutes=time.minute % 10,
         seconds=time.second,
