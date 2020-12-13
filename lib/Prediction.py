@@ -111,10 +111,14 @@ class Prediction:
         pres_difference = last_pressure - first_pressure
         # return the forecast string based on the splitting criteria 
         if(pres_difference > 5):
-            return "++"
+            # pressure rises > +5 hPa
+            return "☀️"
         elif(pres_difference > 0):
-            return "+"
+            # pressure rises between 0 and +5 hPa
+            return "⛅"
         elif(pres_difference > -5):
-            return "-"
+            # pressure falls between 0 and -5 hPa
+            return "🌦"
         else:
-            return "--"
+            # pressure falls < -5 hPa
+            return "⛈"
