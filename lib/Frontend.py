@@ -23,7 +23,7 @@ class Frontend:
         self.sync = Sync()
         self.prediction = Prediction(self.database)
         # create empty graph data to be able to display in UI
-        self.forecast_graph = {}
+        self.forecast_graph = None
         # store dash instance in private variable
         self.app = app
 
@@ -109,9 +109,13 @@ class Frontend:
                             ),
                             html.Div(
                                 children=[
-                                    dcc.Graph(
-                                        id='forecast-graph',
-                                        figure=self.forecast_graph
+                                    dcc.Loading(
+                                        children=[
+                                            dcc.Graph(
+                                                id='forecast-graph',
+                                                figure=self.forecast_graph
+                                            )
+                                        ]
                                     )
                                 ]
                             )
@@ -189,16 +193,18 @@ class Frontend:
         Callback function to return the periodically calculated prediction graph.
         """
         # return the graph from the private variable
+        if self.forecast_graph is None:
+            self.load_day(self.prediction.predict_temp())
         return self.forecast_graph
 
     def run_prediction_periodic(self):
         """ (void) -> void
-        Function to periodically calculate the temperature prediction. 
+        Function to periodically calculate the temperature prediction.
         It is meant to be called once and will run until the sofware is shut down.
         """
         # loop runs until the software is closed down
         while(True):
+            # wait 3 min time to reevaluate with new data
+            time.sleep(180)
             # calulcates and shows the temperature prediction in the forecast_graph (TODO Takes 2min 10sec! on raspberry pi 4)
             self.load_day(self.prediction.predict_temp())
-            # wait some time to reevaluate with new data
-            time.sleep(10)
