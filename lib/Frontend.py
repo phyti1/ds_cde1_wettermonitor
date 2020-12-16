@@ -152,6 +152,8 @@ class Frontend:
                 # create and set new forecast graph (make mean of the two stations and then make a graph of the means)
                 grouped_overview_data = overview_data.groupby(overview_data.index)
                 mean_overview_data = grouped_overview_data.mean()
+                # define date as offset from now
+                mean_overview_data.index = datetime.utcnow() + (mean_overview_data.index - date)
                 self.forecast_graph = px.scatter(mean_overview_data, x=mean_overview_data.index, y="air_temperature",
                     color_discrete_sequence=['red'], labels=dict(index="Time", air_temperature="Air Temperature"),
                     title="Temperature Forecast based on past 8 years (Mean of Mythenquai & Tiefenbrunnen)")
