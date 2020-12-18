@@ -63,8 +63,8 @@ class Prediction:
                         else:
                             # take the mean of both stations temperature for this date
                             current_temperature = current_match_data['air_temperature'][current_datapoint].mean(skipna=True)
-                        # get the absolute difference between each two data points between years
-                        difference += abs(past_temperature - current_temperature)
+                        # get the absolute difference between each two data points between years and weight according to elapsed time
+                        difference += abs(past_temperature - current_temperature) * (30 - ten_minute_interval)
                 # write these differences in a dictionary of all differences with absolute time as index (if existent)
                 if difference > 0:
                     difference_dict[date_now_seven - timedelta(days=years*365+days)] = difference

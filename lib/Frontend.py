@@ -141,7 +141,7 @@ class Frontend:
 
     # Use this function for weather forecast visualization
     def load_day(self, date):
-        """ (TODO whats that?) -> px.scatter
+        """ (TODO whats that?) -> px.line
         Loads a specific day from the database, displays it in the forecast graph and returns it.
         """
         if date != None:
@@ -153,11 +153,27 @@ class Frontend:
                 grouped_overview_data = overview_data.groupby(overview_data.index)
                 mean_overview_data = grouped_overview_data.mean()
                 # define date as offset from now
-                mean_overview_data.index = datetime.utcnow() + (mean_overview_data.index - date)
-                self.forecast_graph = px.scatter(mean_overview_data, x=mean_overview_data.index, y="air_temperature",
-                    color_discrete_sequence=['red'], labels=dict(index="Time", air_temperature="Air Temperature"),
-                    title="Temperature Forecast based on past 8 years (Mean of Mythenquai & Tiefenbrunnen)")
+                mean_overview_data.index = self.database.get_time_rounded(datetime.utcnow()) + (mean_overview_data.index - date)
+                # adjust all temperatures to current temperature
+                mean_overview_data = self.adjust_forecast_to_current_values(mean_overview_data)
+                # line plot
+                self.forecast_graph = px.line(mean_overview_data, x=mean_overview_data.index, y="air_temperature",
+                    color_discrete_sequence=['blue'], labels=dict(index="Time", air_temperature="Air Temperature"),
+                    title="Temperature Forecast")
         return self.forecast_graph
+
+    def adjust_forecast_to_current_values(self, temperature_list):
+        """ (dataframe) -> dataframe
+            Adjust the temperatures of the forecast to the current temperature. 
+        """
+        # get last temperature
+        last_data = self.database.get_last_data()
+        # get the difference of current temperature and forecast temperatures
+        difference = last_data['air_temperature'] - temperature_list.head(1).iloc[0]["air_temperature"]
+        # add the difference to the forecast temperatures
+        temperature_list = temperature_list + difference
+        # return the adjusted temperature list
+        return temperature_list
 
     def is_data_uptodate(self, last_data):
         """ (TODO whats that?) -> bool
