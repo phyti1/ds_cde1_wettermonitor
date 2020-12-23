@@ -41,6 +41,7 @@ class Frontend:
                 Output('wind-speed', 'children'),
                 Output('wind-force', 'children'),
                 Output('wind-direction', 'children'),
+                Output('no-wifi-sign', 'hidden'),
                 [Input('interval-component', 'n_intervals')])(self.update_text)
 
         # define dash callback function, runs self.update_prediction_text
@@ -53,8 +54,20 @@ class Frontend:
 
         # set dash's user interface layout in html like style
         self.app.layout = html.Div(children=[
-            html.H1(children='Weatherstation Lake of Zurich'),
-
+            html.H1(
+                children=[
+                    html.Span(children='Weatherstation Lake of Zurich', style={
+                        'flex-grow': '1',
+                        'text-align': 'left'
+                    }),
+                    html.Span(id='no-wifi-sign', children='🚫📶') 
+                    # TODO remove
+                    # html.Img(src='now-wiki.png') # ❌
+                ],
+                style={
+                    'display': 'flex',
+                }
+            ),
             html.Div(
                 children=[
                     html.Div(
@@ -187,15 +200,17 @@ class Frontend:
         """ (int) -> string, string, string, string
         Callback function for the UI measurement values.
         """
+        # check if no internet symbol has to be hidden
+        hide_internet_symbol = self.sync.has_internet_connection()
         # read the latest data observation from the database
         last_data = self.database.get_last_data()
         # check if the loaded data is empty
         if last_data.empty:
             # return empty values to UI to be able to show the UI before the database connection works
-            return '', '', '', '', ''
+            return '', '', '', '', '', hide_internet_symbol
         else:
             # return the newly read data
-            return last_data['air_temperature'], last_data['water_temperature'], last_data['wind_speed_avg_10min'], last_data['wind_force_avg_10min'], last_data['wind_direction']
+            return last_data['air_temperature'], last_data['water_temperature'], last_data['wind_speed_avg_10min'], last_data['wind_force_avg_10min'], last_data['wind_direction'], hide_internet_symbol
 
     def update_prediction_text(self, n):
         """ (int) -> string

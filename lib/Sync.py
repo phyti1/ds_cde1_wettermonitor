@@ -2,6 +2,7 @@
 import fhnw_ds_weatherstation_client as weather
 import os
 import threading
+import socket
 
 
 class Sync:
@@ -62,3 +63,19 @@ class Sync:
             print("No Internet")
         # allow for new syncing to take place, loading historic and latest data will always end here
         self.is_syncing = False
+
+    def has_internet_connection(self):
+        """ (object) -> bool
+        This function returns true if there is a connection to the internet.
+        """
+        try:
+            # check if host is reachable
+            host = socket.gethostbyname("1.1.1.1")
+            # connect to the host -- tells us if the host is actually
+            # reachable
+            s = socket.create_connection((host, 80), 2)
+            s.close()
+            return True
+        except:
+            pass
+        return False       
