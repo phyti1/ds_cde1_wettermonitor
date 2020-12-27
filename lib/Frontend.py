@@ -18,12 +18,15 @@ class Frontend:
         Contructor of Frontend. Will initialize other classes and set default values.
         """
         self.is_loading_prediction = False
+
         # instanciate Database, Sync and Prediction classes and store in private variables
         self.database = Database()
         self.sync = Sync()
         self.prediction = Prediction(self.database)
+
         # create empty graph data to be able to display in UI
         self.forecast_graph = {}
+
         # store dash instance in private variable
         self.app = app
 
@@ -33,8 +36,10 @@ class Frontend:
         """
         # import all historic data and continously load latest data
         self.sync.import_data_async(True)
+
         # start the prediction calculation loop in new thread
         threading.Thread(target = self.run_prediction_periodic).start()
+
         # define dash callback function, runs self.update_text
         self.app.callback(Output('air-temperature', 'children'),
                 Output('water-temperature', 'children'),
@@ -160,15 +165,19 @@ class Frontend:
         if date != None:
             # load specific date from database
             overview_data = self.database.get_data_specific_date(date)
+
             # only update view if there is any data
             if not overview_data is None and overview_data.empty == False:
                 # create and set new forecast graph (make mean of the two stations and then make a graph of the means)
                 grouped_overview_data = overview_data.groupby(overview_data.index)
                 mean_overview_data = grouped_overview_data.mean()
+
                 # define date as offset from now
                 mean_overview_data.index = self.database.get_time_rounded(datetime.utcnow()) + (mean_overview_data.index - date)
+
                 # adjust all temperatures to current temperature
                 mean_overview_data = self.adjust_forecast_to_current_values(mean_overview_data)
+
                 # line plot
                 self.forecast_graph = px.line(mean_overview_data, x=mean_overview_data.index, y="air_temperature",
                     color_discrete_sequence=['blue'], labels=dict(index="Time", air_temperature="Air Temperature"),
@@ -181,10 +190,13 @@ class Frontend:
         """
         # get last temperature
         last_data = self.database.get_last_data()
+
         # get the difference of current temperature and forecast temperatures
         difference = last_data['air_temperature'] - temperature_list.head(1).iloc[0]["air_temperature"]
+
         # add the difference to the forecast temperatures
         temperature_list = temperature_list + difference
+
         # return the adjusted temperature list
         return temperature_list
 
@@ -202,12 +214,15 @@ class Frontend:
         """
         # check if no internet symbol has to be hidden
         hide_internet_symbol = self.sync.has_internet_connection()
+
         # read the latest data observation from the database
         last_data = self.database.get_last_data()
+
         # check if the loaded data is empty
         if last_data.empty:
             # return empty values to UI to be able to show the UI before the database connection works
             return '', '', '', '', '', hide_internet_symbol
+
         else:
             # return the newly read data
             return last_data['air_temperature'], last_data['water_temperature'], last_data['wind_speed_avg_10min'], last_data['wind_force_avg_10min'], last_data['wind_direction'], hide_internet_symbol
@@ -218,6 +233,7 @@ class Frontend:
         """
         # calculate the prediction
         prediction = self.prediction.predict_press()
+
         # return the prediction outcome sign to display in the UI
         return prediction
 
@@ -228,6 +244,7 @@ class Frontend:
         # create graph on initial load
         if self.forecast_graph == {}:
             self.load_day(self.prediction.predict_temp())
+            
         # return the graph from the private variable
         return self.forecast_graph
 

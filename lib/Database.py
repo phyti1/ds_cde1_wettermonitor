@@ -37,6 +37,7 @@ class Database:
         """
         result = self.query(query_string)
         all_data = None
+
         # combine all stations into single dataframe
         for measurement in result:
             data = result[measurement]
@@ -47,6 +48,7 @@ class Database:
                 all_data = data
             else:
                 all_data = all_data.append(data, sort=False)
+
         # return combined dataframe
         return all_data
 
@@ -63,6 +65,7 @@ class Database:
 
         # only get latest (filter out stations without new data)
         latest = result[result.index == result.index.max()]
+
         # get mean of all values
         return latest.mean(skipna=True).round(1)
 
@@ -87,6 +90,7 @@ class Database:
         """
         # convert date to string in the specified date format
         date_string = date.strftime('%Y-%m-%d %H:%M:%S')
+
         # run query
         result = self.query_all(f'''
                                 SELECT
@@ -104,10 +108,13 @@ class Database:
         """
         # get date now in utc
         date_year_ago = datetime.utcnow()
+
         # get date now - 1 year in utc
-        date_year_ago = date_year_ago.replace(year=date_year_ago.year-1)
+        date_year_ago = date_year_ago.replace(year=date_year_ago.year - 1)
+
         # convert date to string in the specified date format
         date_year_ago_string = date_year_ago.strftime('%Y-%m-%d %H:%M:%S')
+
         # run query
         result = self.query_all(f'''
                                 SELECT
@@ -128,11 +135,14 @@ class Database:
         """
         # get date now
         date_now = datetime.utcnow()
+
         # get date now - 5 hours
         start_date = date_now - timedelta(hours=5)
+
         # convert dates to string in the specified date format
         start_date_string = start_date.strftime('%Y-%m-%d %H:%M:%S')
         end_date_string = date_now.strftime('%Y-%m-%d %H:%M:%S')
+
         # run query
         result = self.query_all(f'''
                             SELECT
@@ -144,7 +154,6 @@ class Database:
                     ''')
         return result
 
-# TODO OBSOLETE???
     def get_data_comparison(self):
         """ (object) -> object
         This function returns all observations around +/- 7 days from every year except the current year.
@@ -152,15 +161,19 @@ class Database:
         # get date now
         date_now = datetime.utcnow()
         result = None
+
         # iterate through all years
         for x in range(1, date_now.year - 2006):
             date_x_years_ago = date_now.replace(year=date_now.year-x)
+
             # get dates +/- 7 days
             start_date = date_x_years_ago - timedelta(days=7)
             end_date = date_x_years_ago + timedelta(days=7)
+
             # convert dates to string of given format
             start_date_string = start_date.strftime('%Y-%m-%d %H:%M:%S')
             end_date_string = end_date.strftime('%Y-%m-%d %H:%M:%S')
+
             # run query
             data = self.query_all(f'''
                                 SELECT
@@ -169,12 +182,15 @@ class Database:
                                 WHERE time > '{start_date_string}' AND time < '{end_date_string}'
                                 ORDER BY ASC
                         ''')
+
             if result is None:
                 result = data
             else:
                 result = result.append(data, sort=False)
+
         if not result is None:
             result.sort_index(inplace=True)
+            
         return result
 
 

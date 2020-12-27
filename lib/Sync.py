@@ -13,6 +13,7 @@ class Sync:
         self.is_syncing = False
         # DB and CSV config
         self.config = weather.Config()
+
         # connect to DB
         weather.connect_db(self.config)
 
@@ -39,12 +40,15 @@ class Sync:
         # check if the database is up to date
         if not weather.db_is_up_to_date(self.config):
             print('Syncing historic data...')
+
             # wipe the database for a fresh start
             weather.clean_db(self.config)
+            
             # import historic data
             weather.import_historic_data(self.config)
         else:
             print('Historic data already synced.')
+
         # import latest data (delta between last data point in DB and current time)
         self.import_latest_data()
         if periodic:
@@ -61,6 +65,7 @@ class Sync:
             print(err)
         except Exception as err:
             print("No Internet")
+
         # allow for new syncing to take place, loading historic and latest data will always end here
         self.is_syncing = False
 

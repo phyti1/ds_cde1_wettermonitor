@@ -12,6 +12,7 @@ class Main:
         """
         # initialize Dash
         app = dash.Dash(__name__, title = 'Wettermonitor')
+
         # instanciate Frontend
         self.frontend = Frontend(app)
 
@@ -21,11 +22,13 @@ class Main:
         """
         # load user interface
         self.frontend.run()
+
         # start Dash server
         self.frontend.app.run_server(debug=False)
 
 if __name__ == '__main__':
     # instanciate Main class
     main = Main()
+    
     # Applikation starten
     main.run()
