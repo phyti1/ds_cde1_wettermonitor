@@ -6,6 +6,7 @@ import pandas as pd
 import threading
 from datetime import datetime, timedelta
 import time
+import base64
 
 from lib.Database import Database
 from lib.Prediction import Prediction
@@ -40,6 +41,9 @@ class Frontend:
         # start the prediction calculation loop in new thread
         threading.Thread(target = self.run_prediction_periodic).start()
 
+        # read no internet image
+        no_wifi_image = base64.b64encode(open('assets/no-wifi.png', 'rb').read()).decode()
+
         # define dash callback function, runs self.update_text
         self.app.callback(Output('air-temperature', 'children'),
                 Output('water-temperature', 'children'),
@@ -48,6 +52,7 @@ class Frontend:
                 Output('wind-direction', 'children'),
                 Output('no-wifi-sign', 'hidden'),
                 [Input('interval-component', 'n_intervals')])(self.update_text)
+
 
         # define dash callback function, runs self.update_prediction_text
         self.app.callback(Output('forecast-pressure', 'children'),
@@ -65,9 +70,9 @@ class Frontend:
                         'flex-grow': '1',
                         'text-align': 'left'
                     }),
-                    html.Span(id='no-wifi-sign', children='🚫📶') 
-                    # TODO remove
-                    # html.Img(src='now-wiki.png') # ❌
+                    html.Img(id='no-wifi-sign', src='data:image/png;base64,{}'.format(no_wifi_image),  hidden=True, style={
+                        'height': '5rem',
+                    })
                 ],
                 style={
                     'display': 'flex',
@@ -152,14 +157,15 @@ class Frontend:
 
             dcc.Interval(
                 id='interval-component',
-                interval=60000, # in milliseconds
+                # interval in milliseconds
+                interval=60000, 
                 n_intervals=0
             )
         ])
 
     # Use this function for weather forecast visualization
     def load_day(self, date):
-        """ (TODO whats that?) -> px.line
+        """ (object) -> px.line
         Loads a specific day from the database, displays it in the forecast graph and returns it.
         """
         if date != None:
@@ -201,7 +207,7 @@ class Frontend:
         return temperature_list
 
     def is_data_uptodate(self, last_data):
-        """ (TODO whats that?) -> bool
+        """ (object) -> bool
         Determines whether the latest data could be loaded and returns true if it was.
         """
         if last_data is None or last_data.empty or last_data.index < datetime.now('Europe/Berlin') - timedelta(minutes = 16):
@@ -222,7 +228,6 @@ class Frontend:
         if last_data.empty:
             # return empty values to UI to be able to show the UI before the database connection works
             return '', '', '', '', '', hide_internet_symbol
-
         else:
             # return the newly read data
             return last_data['air_temperature'], last_data['water_temperature'], last_data['wind_speed_avg_10min'], last_data['wind_force_avg_10min'], last_data['wind_direction'], hide_internet_symbol
@@ -260,5 +265,5 @@ class Frontend:
 
             # check if graph has been initialized
             if self.forecast_graph != {}:
-                # calulcates and shows the temperature prediction in the forecast_graph (TODO Takes 2min 10sec! on raspberry pi 4)
+                # calulcates and shows the temperature prediction in the forecast_graph
                 self.load_day(self.prediction.predict_temp())

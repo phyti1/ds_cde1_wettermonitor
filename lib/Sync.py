@@ -76,10 +76,10 @@ class Sync:
         try:
             # check if host is reachable
             host = socket.gethostbyname("1.1.1.1")
-            # connect to the host -- tells us if the host is actually
-            # reachable
-            s = socket.create_connection((host, 80), 2)
-            s.close()
+
+            # connect to the host -- tells us if the host is actually reachable
+            socket_connection = socket.create_connection((host, 80), 2)
+            socket_connection.close()
             return True
         except:
             pass

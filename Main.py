@@ -30,5 +30,5 @@ if __name__ == '__main__':
     # instanciate Main class
     main = Main()
     
-    # Applikation starten
+    # start application
     main.run()
