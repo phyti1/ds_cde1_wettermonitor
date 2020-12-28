@@ -65,7 +65,7 @@ class Frontend:
                         'flex-grow': '1',
                         'text-align': 'left'
                     }),
-                    html.Span(id='no-wifi-sign', children='🚫📶') 
+                    html.Span(id='no-wifi-sign', children='🚫📶')
                     # TODO remove
                     # html.Img(src='now-wiki.png') # ❌
                 ],
@@ -186,7 +186,7 @@ class Frontend:
 
     def adjust_forecast_to_current_values(self, temperature_list):
         """ (dataframe) -> dataframe
-            Adjust the temperatures of the forecast to the current temperature. 
+            Adjust the temperatures of the forecast to the current temperature.
         """
         # get last temperature
         last_data = self.database.get_last_data()
@@ -242,9 +242,9 @@ class Frontend:
         Callback function to return the periodically calculated prediction graph.
         """
         # create graph on initial load
-        if self.forecast_graph == {}:
+        while self.forecast_graph == {}:
             self.load_day(self.prediction.predict_temp())
-            
+
         # return the graph from the private variable
         return self.forecast_graph
 
