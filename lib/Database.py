@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta
 from influxdb import DataFrameClient
 import pandas as pd
+import numpy as np
 
 
 class Database:
@@ -15,7 +16,7 @@ class Database:
 
     def query(self, query_string):
         """ (object, string) -> object
-        This function queries the given query string. 
+        This function queries the given query string.
         It also creates (if not exist) and switches to the database meteorology.
         It returns the result as a dataframe.
         """
@@ -31,7 +32,7 @@ class Database:
 
     def query_all(self, query_string):
         """ (object, string) -> object
-        This function queries the given query string through the query function. 
+        This function queries the given query string through the query function.
         It combines the results into one single dataframe.
         The return value is the combined dataframe.
         """
@@ -54,7 +55,7 @@ class Database:
 
     def query_combine(self, query_string):
         """ (object, string) -> object
-        This function queries the given query string through the query function. 
+        This function queries the given query string through the query function.
         It combines the results into one single dataframe.
         The return value is the combined dataframe.
         """
@@ -66,8 +67,37 @@ class Database:
         # only get latest (filter out stations without new data)
         latest = result[result.index == result.index.max()]
 
+        if 'wind_direction' in latest:
+            wind_direction = latest['wind_direction']
+
+            # calculate mean wind direction based on formula from: https://en.wikipedia.org/wiki/Mean_of_circular_quantities#Mean_of_angles
+            mean_wind = np.round(np.arctan2(sum(np.sin(wind_direction)), sum(np.cos(wind_direction))) * 180 / np.pi) % 360
+
+            # convert direction to string
+            if 292.5 < mean_wind <= 337.5:
+                mean_wind = 'NW'
+            elif 247.5 < mean_wind <= 292.5:
+                mean_wind = 'W'
+            elif 202.5 < mean_wind <= 247.5:
+                mean_wind = 'SW'
+            elif 157.5 < mean_wind <= 202.5:
+                mean_wind = 'S'
+            elif 112.5 < mean_wind <= 157.5:
+                mean_wind = 'SE'
+            elif 67.5 < mean_wind <= 112.5:
+                mean_wind = 'E'
+            elif 22.5 < mean_wind <= 67.5:
+                mean_wind = 'NE'
+            else:
+                mean_wind = 'N'
+
         # get mean of all values
-        return latest.mean(skipna=True).round(1)
+        latest = latest.mean(skipna=True).round(1)
+
+        if 'wind_direction' in latest:
+            latest['wind_direction'] = mean_wind
+
+        return latest
 
     def get_last_data(self):
         """ (object) -> object
@@ -190,7 +220,7 @@ class Database:
 
         if not result is None:
             result.sort_index(inplace=True)
-            
+
         return result
 
 

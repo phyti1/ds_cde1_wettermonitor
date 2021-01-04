@@ -122,8 +122,7 @@ class Frontend:
 
                                     html.H2(children=[
                                         html.Span(children='Winddirection: '),
-                                        html.Span(id='wind-direction'),
-                                        html.Span(children='°')
+                                        html.Span(id='wind-direction')
                                     ]),
                                 ],
                                 style={
@@ -158,7 +157,7 @@ class Frontend:
             dcc.Interval(
                 id='interval-component',
                 # interval in milliseconds
-                interval=60000, 
+                interval=60000,
                 n_intervals=0
             )
         ])
