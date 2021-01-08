@@ -264,7 +264,7 @@ class Frontend:
             # wait 1 min time to reevaluate
             time.sleep(60)
 
-            # check if graph has been initialized
+            # check if graph has been initialized and no data is loading
             if self.forecast_graph != {} and self.sync.is_syncing == False:
                 # calulcates and shows the temperature prediction in the forecast_graph
                 self.load_day(self.prediction.predict_temp())
