@@ -1,4 +1,4 @@
-# import the library
+# import the **fixed** library
 import fhnw_ds_weatherstation_client as weather
 import os
 import threading
