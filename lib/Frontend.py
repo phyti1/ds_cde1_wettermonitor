@@ -224,10 +224,11 @@ class Frontend:
         # read the latest data observation from the database
         last_data = self.database.get_last_data()
 
-        # check if the loaded data is empty
-        if last_data.empty:
-            # return empty values to UI to be able to show the UI before the database connection works
-            return '', '', '', '', '', hide_internet_symbol
+        # check if the loaded data is empty or loading
+        if last_data.empty or self.sync.is_syncing:
+            # return dummy values to UI to be able to show the UI before the database connection works
+            return '🔄', '🔄', '🔄', '🔄', '🔄', hide_internet_symbol
+        # check if database is loading
         else:
             # return the newly read data
             return last_data['air_temperature'], last_data['water_temperature'], last_data['wind_speed_avg_10min'], last_data['wind_force_avg_10min'], last_data['wind_direction'], hide_internet_symbol
