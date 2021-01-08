@@ -42,7 +42,7 @@ class Frontend:
         threading.Thread(target = self.run_prediction_periodic).start()
 
         # read no internet image
-        no_wifi_image = base64.b64encode(open('assets/no-wifi.png', 'rb').read()).decode()
+        no_wifi_image = base64.b64encode(open('/home/user/wettermonitor/assets/no-wifi.png', 'rb').read()).decode()
 
         # define dash callback function, runs self.update_text
         self.app.callback(Output('air-temperature', 'children'),
